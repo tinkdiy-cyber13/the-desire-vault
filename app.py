@@ -5,27 +5,53 @@ import json
 import os
 
 # Configurare Pagina
-st.set_page_config(page_title="The Desire Vault", page_icon="✨", layout="centered")
+st.set_page_config(page_title="The Desire Vault v1.8", page_icon="✨", layout="centered")
 
-DB_DORINTE = "baza_dorinte.json"
+DB_FILE = "baza_dorinte.json"
 
+# --- FUNCTII BAZA DE DATE ---
 def incarca_tot():
-    if os.path.exists(DB_DORINTE):
+    if os.path.exists(DB_FILE):
         try:
-            with open(DB_DORINTE, "r") as f: return json.load(f)
-        except: return {"total_multumiri": 0}
-    return {"total_multumiri": 0}
+            with open(DB_FILE, "r") as f:
+                date = json.load(f)
+                # Conversie format vechi daca e cazul
+                if "total_multumiri" not in date:
+                    date = {"total_multumiri": date.get("total_multumiri", 0), "vizite": 0}
+                return date
+        except:
+            return {"total_multumiri": 0, "vizite": 0}
+    return {"total_multumiri": 0, "vizite": 0}
 
-def salveaza_tot(date):
-    with open(DB_DORINTE, "w") as f: json.dump(date, f)
+def salveaza_tot(date_complete):
+    with open(DB_FILE, "w") as f:
+        json.dump(date_complete, f)
 
+# --- INITIALIZARE SI CONTORIZARE ---
 date_sistem = incarca_tot()
+
+if 'numarat_v' not in st.session_state:
+    date_sistem["vizite"] = date_sistem.get("vizite", 0) + 1
+    salveaza_tot(date_sistem)
+    st.session_state['numarat_v'] = True
 
 if 'vault_id' not in st.session_state:
     st.session_state.vault_id = random.randint(1000, 9999)
 
-# --- TITLU SI FILOZOFIE ---
+# --- TITLU SI AFISARE "OO" (Design Admin) ---
 st.title("✨ The Desire Vault")
+
+st.markdown(
+    f"""
+    <div style='text-align: right; margin-top: -55px;'>
+        <span style='color: #22d3ee; font-size: 16px; font-weight: bold; border: 2px solid #22d3ee; padding: 4px 12px; border-radius: 15px; background-color: rgba(34, 211, 238, 0.1);'>
+            OO: {date_sistem.get('vizite', 0)}
+        </span>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
+
 st.write("---")
 st.markdown("> *\"Become naive enough to believe it will happen!\"*")
 
@@ -39,7 +65,6 @@ dorinta = st.text_area(
     height=150
 )
 
-# --- MESAJUL DE CONFIDENȚIALITATE UNIVERSALĂ ---
 st.markdown("<p style='text-align: center; color: #888; font-size: 0.8em; font-style: italic;'>🔒 Privacy Protocol: Your desires are never stored. They are processed in real-time and sent directly to the Universe.</p>", unsafe_allow_html=True)
 
 if st.button("🚀 Seal in the Vault"):
@@ -56,7 +81,6 @@ if st.button("🚀 Seal in the Vault"):
         st.balloons()
         st.success("✨ It is done. Your desire has been released!")
         
-        # RESETARE TOTALĂ
         st.session_state.vault_id = random.randint(1000, 9999)
         st.session_state['show_thanks'] = True
         time.sleep(2)
@@ -83,7 +107,7 @@ if st.session_state.get('show_thanks'):
         time.sleep(1)
         st.rerun()
 
-# --- 3. CONTORUL DE INIMIOARE ---
+# --- 3. CONTORUL DE INIMIOARE (MULTUMIRI) ---
 st.markdown(
     f"""
     <div style='position: fixed; top: 70px; right: 10px; background-color: rgba(255, 75, 75, 0.1); 
@@ -94,9 +118,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- 4. SURPRISE ---
+# --- 4. SURPRISE (MENTOR) ---
 st.divider()
 if st.button("🎁 MENTOR"):
     st.info(random.choice(["Work on yourself!", "Profits over wages.", "Believe!"]))
+
 
 
