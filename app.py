@@ -21,28 +21,27 @@ def salveaza_date(date):
 
 date_sistem = incarca_date()
 
-# Folosim un state special pentru a goli casuta
-if 'last_wish_time' not in st.session_state:
-    st.session_state['last_wish_time'] = 0
+# --- LOGICA DE RESETARE ---
+if 'reset_input' not in st.session_state:
+    st.session_state.reset_input = random.randint(1, 1000)
 
 # --- TITLU SI FILOZOFIE ---
 st.title("✨ The Desire Vault")
 st.write("---")
 st.markdown("> *\"Become naive enough to believe it will happen!\"*  \n> — **J. Earl Shoaff**")
 
-# 1. INPUT PENTRU DORINTA (Se goleste automat prin key-ul dinamic)
+# 1. INPUT PENTRU DORINTA
 st.subheader("🗝️ Seal your desire")
 
-# Trucul de Admin: schimbam cheia de input de fiecare data cand trimitem, asa se goleste singura
-wish_key = f"wish_{st.session_state['last_wish_time']}"
-dorinta = st.text_input("Write your desire here (be specific):", placeholder="Example: I am so grateful for...", key=wish_key)
+# Cheia dinamica forteaza casuta sa fie goala la fiecare reset
+dorinta = st.text_input("Write your desire here:", placeholder="I am so grateful for...", key=f"wish_{st.session_state.reset_input}")
 
 if st.button("🚀 Send to the Vault"):
     if dorinta:
         progres = st.progress(0)
         status_text = st.empty()
         
-        # Efectul vizual de procesare
+        # Animația literelor
         for i, litera in enumerate(dorinta):
             procent = int((i + 1) / len(dorinta) * 100)
             status_text.markdown(f"**Processing letter:** `{litera}`")
@@ -50,20 +49,20 @@ if st.button("🚀 Send to the Vault"):
             time.sleep(0.04)
             
         st.balloons()
-        st.success("✨ Your desire has been sealed in the Universe's Vault!")
+        st.success("✨ Sealed!")
         
-        # Incrementam starea pentru a reseta casuta la urmatorul rerun
-        st.session_state['last_wish_time'] += 1
-        st.session_state['show_gratitude'] = True
-        time.sleep(2) # Lasam utilizatorul sa vada succesul
-        st.rerun() # RESTART automat pentru casuta goala
+        # SCHIMBĂM CHEIA CA SĂ GOLIM TOT
+        st.session_state.reset_input = random.randint(1, 1000)
+        st.session_state['show_thanks'] = True
+        time.sleep(1.5)
+        st.rerun() # RESTART TOTAL
     else:
-        st.error("Please write your desire first!")
+        st.error("Write something first!")
 
-# 2. BUTONUL DE RECUNOSTINTA (Ramane activ pana la urmatoarea scriere)
-if st.session_state.get('show_gratitude'):
+# 2. BUTONUL DE RECUNOSTINTA (Apare doar dupa trimitere)
+if st.session_state.get('show_thanks'):
     st.divider()
-    st.subheader("🙏 Gratitude activates the Magic")
+    st.subheader("🙏 Gratitude")
     
     if 'count_multumiri' not in st.session_state:
         st.session_state['count_multumiri'] = 0
@@ -74,15 +73,15 @@ if st.session_state.get('show_gratitude'):
             date_sistem["total_multumiri"] = date_sistem.get("total_multumiri", 0) + 1
             salveaza_date(date_sistem)
             st.snow()
-            st.toast(f"Gratitude confirmed! ({st.session_state['count_multumiri']}/3)")
+            st.toast(f"Gratitude {st.session_state['count_multumiri']}/3")
     else:
-        st.info("The 3 magic thanks are sent! ✨")
-        if st.button("Reset Gratitude for new wish"):
-            st.session_state['count_multumiri'] = 0
-            st.session_state['show_gratitude'] = False
-            st.rerun()
+        # Dupa 3 multumiri, curatam si sectiunea asta
+        st.session_state['show_thanks'] = False
+        st.session_state['count_multumiri'] = 0
+        time.sleep(1)
+        st.rerun()
 
-# 3. CONTORUL DE INIMIOARE
+# 3. CONTORUL DE INIMIOARE (Badge discret)
 st.markdown(
     f"""
     <div style='position: fixed; top: 70px; right: 10px; background-color: rgba(255, 75, 75, 0.1); 
@@ -95,13 +94,13 @@ st.markdown(
 
 # 4. SURPRISE BUTTON
 st.divider()
-if st.button("🎁 THE MENTOR'S MESSAGE"):
+if st.button("🎁 THE MENTOR"):
     mesaje_shoaff = [
         "Don't wish it were easier, wish you were better!",
         "Profits are better than wages.",
         "Success is something you attract by the person you become.",
-        "If you want to have more, you have to become more!",
         "Work harder on yourself than you do on your job."
     ]
     st.info(random.choice(mesaje_shoaff))
+
 
