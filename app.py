@@ -21,7 +21,6 @@ def salveaza_tot(date):
 
 date_sistem = incarca_tot()
 
-# ID dinamic pentru a forța un spațiu de scris complet nou de fiecare dată
 if 'vault_id' not in st.session_state:
     st.session_state.vault_id = random.randint(1000, 9999)
 
@@ -30,35 +29,34 @@ st.title("✨ The Desire Vault")
 st.write("---")
 st.markdown("> *\"Become naive enough to believe it will happen!\"*")
 
-# --- 1. SPATIUL DE MANIFESTARE (FĂRĂ ISTORIC) ---
+# --- 1. SPATIUL DE MANIFESTARE ---
 st.subheader("🗝️ Seal your desire")
 
-# Folosim TEXT_AREA în loc de TEXT_INPUT pentru a păcăli istoricul browserului
-# Și îi dăm o cheie care se schimbă mereu
 dorinta = st.text_area(
     "Your Sacred Space:", 
     placeholder="Start writing your new reality here...", 
     key=f"area_{st.session_state.vault_id}",
-    height=150,
-    help="This space is fresh. No past records allowed."
+    height=150
 )
+
+# --- MESAJUL DE CONFIDENȚIALITATE UNIVERSALĂ ---
+st.markdown("<p style='text-align: center; color: #888; font-size: 0.8em; font-style: italic;'>🔒 Privacy Protocol: Your desires are never stored. They are processed in real-time and sent directly to the Universe.</p>", unsafe_allow_html=True)
 
 if st.button("🚀 Seal in the Vault"):
     if dorinta.strip():
         progres = st.progress(0)
         status_text = st.empty()
         
-        # Animația de sigilare
-        for i, litera in enumerate(dorinta[:50]): # Analizăm vizual primele 50 caractere
+        for i, litera in enumerate(dorinta[:50]):
             procent = int((i + 1) / min(len(dorinta), 50) * 100)
             status_text.markdown(f"**Vibrating:** `{litera}`")
             progres.progress(procent)
             time.sleep(0.04)
             
         st.balloons()
-        st.success("✨ It is done. Your desire is now part of the Universe.")
+        st.success("✨ It is done. Your desire has been released!")
         
-        # RESETARE TOTALĂ: Schimbăm ID-ul și golim ecranul
+        # RESETARE TOTALĂ
         st.session_state.vault_id = random.randint(1000, 9999)
         st.session_state['show_thanks'] = True
         time.sleep(2)
@@ -100,6 +98,5 @@ st.markdown(
 st.divider()
 if st.button("🎁 MENTOR"):
     st.info(random.choice(["Work on yourself!", "Profits over wages.", "Believe!"]))
-
 
 
