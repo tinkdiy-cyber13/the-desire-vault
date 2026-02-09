@@ -21,57 +21,52 @@ def salveaza_tot(date):
 
 date_sistem = incarca_tot()
 
-if 'reset_input' not in st.session_state:
-    st.session_state.reset_input = random.randint(1, 1000)
+# ID dinamic pentru a forța un spațiu de scris complet nou de fiecare dată
+if 'vault_id' not in st.session_state:
+    st.session_state.vault_id = random.randint(1000, 9999)
 
 # --- TITLU SI FILOZOFIE ---
 st.title("✨ The Desire Vault")
 st.write("---")
 st.markdown("> *\"Become naive enough to believe it will happen!\"*")
 
-# --- 1. INPUT PENTRU DORINTA (BLOCARE AUTOCOMPLETE) ---
+# --- 1. SPATIUL DE MANIFESTARE (FĂRĂ ISTORIC) ---
 st.subheader("🗝️ Seal your desire")
 
-# Hack de Admin: Injectăm HTML pentru a opri sugestiile browserului
-st.markdown("""
-    <style>
-        input {
-            autocomplete: off;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# Folosim un label gol si widget-ul de text cu cheie dinamica
-dorinta = st.text_input(
-    "Write your desire here:", 
-    placeholder="I am so grateful for...", 
-    key=f"wish_{st.session_state.reset_input}",
-    help="Browser history disabled for this vault."
+# Folosim TEXT_AREA în loc de TEXT_INPUT pentru a păcăli istoricul browserului
+# Și îi dăm o cheie care se schimbă mereu
+dorinta = st.text_area(
+    "Your Sacred Space:", 
+    placeholder="Start writing your new reality here...", 
+    key=f"area_{st.session_state.vault_id}",
+    height=150,
+    help="This space is fresh. No past records allowed."
 )
 
-if st.button("🚀 Send to the Vault"):
-    if dorinta:
+if st.button("🚀 Seal in the Vault"):
+    if dorinta.strip():
         progres = st.progress(0)
         status_text = st.empty()
         
-        for i, litera in enumerate(dorinta):
-            procent = int((i + 1) / len(dorinta) * 100)
-            status_text.markdown(f"**Processing letter:** `{litera}`")
+        # Animația de sigilare
+        for i, litera in enumerate(dorinta[:50]): # Analizăm vizual primele 50 caractere
+            procent = int((i + 1) / min(len(dorinta), 50) * 100)
+            status_text.markdown(f"**Vibrating:** `{litera}`")
             progres.progress(procent)
             time.sleep(0.04)
             
         st.balloons()
-        st.success("✨ Sealed!")
+        st.success("✨ It is done. Your desire is now part of the Universe.")
         
-        # Reset total pentru a goli si a schimba ID-ul casutei
-        st.session_state.reset_input = random.randint(1, 1000)
+        # RESETARE TOTALĂ: Schimbăm ID-ul și golim ecranul
+        st.session_state.vault_id = random.randint(1000, 9999)
         st.session_state['show_thanks'] = True
-        time.sleep(1.2)
+        time.sleep(2)
         st.rerun()
     else:
-        st.error("Write something first!")
+        st.error("The vault requires words to manifest.")
 
-# --- 2. BUTONUL DE RECUNOSTINTA ---
+# --- 2. RECUNOSTINTA ---
 if st.session_state.get('show_thanks'):
     st.divider()
     if 'count_multumiri' not in st.session_state:
@@ -101,11 +96,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- 4. SURPRISE BUTTON ---
+# --- 4. SURPRISE ---
 st.divider()
-if st.button("🎁 THE MENTOR"):
-    mesaje = ["Success is something you attract.", "Profits are better than wages.", "Become more!"]
-    st.info(random.choice(mesaje))
+if st.button("🎁 MENTOR"):
+    st.info(random.choice(["Work on yourself!", "Profits over wages.", "Believe!"]))
 
 
 
