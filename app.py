@@ -9,39 +9,51 @@ st.set_page_config(page_title="The Desire Vault", page_icon="✨", layout="cente
 
 DB_DORINTE = "baza_dorinte.json"
 
-def incarca_date():
+def incarca_tot():
     if os.path.exists(DB_DORINTE):
         try:
             with open(DB_DORINTE, "r") as f: return json.load(f)
         except: return {"total_multumiri": 0}
     return {"total_multumiri": 0}
 
-def salveaza_date(date):
+def salveaza_tot(date):
     with open(DB_DORINTE, "w") as f: json.dump(date, f)
 
-date_sistem = incarca_date()
+date_sistem = incarca_tot()
 
-# --- LOGICA DE RESETARE ---
 if 'reset_input' not in st.session_state:
     st.session_state.reset_input = random.randint(1, 1000)
 
 # --- TITLU SI FILOZOFIE ---
 st.title("✨ The Desire Vault")
 st.write("---")
-st.markdown("> *\"Become naive enough to believe it will happen!\"*  \n> — **J. Earl Shoaff**")
+st.markdown("> *\"Become naive enough to believe it will happen!\"*")
 
-# 1. INPUT PENTRU DORINTA
+# --- 1. INPUT PENTRU DORINTA (BLOCARE AUTOCOMPLETE) ---
 st.subheader("🗝️ Seal your desire")
 
-# Cheia dinamica forteaza casuta sa fie goala la fiecare reset
-dorinta = st.text_input("Write your desire here:", placeholder="I am so grateful for...", key=f"wish_{st.session_state.reset_input}")
+# Hack de Admin: Injectăm HTML pentru a opri sugestiile browserului
+st.markdown("""
+    <style>
+        input {
+            autocomplete: off;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# Folosim un label gol si widget-ul de text cu cheie dinamica
+dorinta = st.text_input(
+    "Write your desire here:", 
+    placeholder="I am so grateful for...", 
+    key=f"wish_{st.session_state.reset_input}",
+    help="Browser history disabled for this vault."
+)
 
 if st.button("🚀 Send to the Vault"):
     if dorinta:
         progres = st.progress(0)
         status_text = st.empty()
         
-        # Animația literelor
         for i, litera in enumerate(dorinta):
             procent = int((i + 1) / len(dorinta) * 100)
             status_text.markdown(f"**Processing letter:** `{litera}`")
@@ -51,19 +63,17 @@ if st.button("🚀 Send to the Vault"):
         st.balloons()
         st.success("✨ Sealed!")
         
-        # SCHIMBĂM CHEIA CA SĂ GOLIM TOT
+        # Reset total pentru a goli si a schimba ID-ul casutei
         st.session_state.reset_input = random.randint(1, 1000)
         st.session_state['show_thanks'] = True
-        time.sleep(1.5)
-        st.rerun() # RESTART TOTAL
+        time.sleep(1.2)
+        st.rerun()
     else:
         st.error("Write something first!")
 
-# 2. BUTONUL DE RECUNOSTINTA (Apare doar dupa trimitere)
+# --- 2. BUTONUL DE RECUNOSTINTA ---
 if st.session_state.get('show_thanks'):
     st.divider()
-    st.subheader("🙏 Gratitude")
-    
     if 'count_multumiri' not in st.session_state:
         st.session_state['count_multumiri'] = 0
         
@@ -71,17 +81,16 @@ if st.session_state.get('show_thanks'):
         if st.button("💖 THANK YOU!"):
             st.session_state['count_multumiri'] += 1
             date_sistem["total_multumiri"] = date_sistem.get("total_multumiri", 0) + 1
-            salveaza_date(date_sistem)
+            salveaza_tot(date_sistem)
             st.snow()
             st.toast(f"Gratitude {st.session_state['count_multumiri']}/3")
     else:
-        # Dupa 3 multumiri, curatam si sectiunea asta
         st.session_state['show_thanks'] = False
         st.session_state['count_multumiri'] = 0
         time.sleep(1)
         st.rerun()
 
-# 3. CONTORUL DE INIMIOARE (Badge discret)
+# --- 3. CONTORUL DE INIMIOARE ---
 st.markdown(
     f"""
     <div style='position: fixed; top: 70px; right: 10px; background-color: rgba(255, 75, 75, 0.1); 
@@ -92,15 +101,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 4. SURPRISE BUTTON
+# --- 4. SURPRISE BUTTON ---
 st.divider()
 if st.button("🎁 THE MENTOR"):
-    mesaje_shoaff = [
-        "Don't wish it were easier, wish you were better!",
-        "Profits are better than wages.",
-        "Success is something you attract by the person you become.",
-        "Work harder on yourself than you do on your job."
-    ]
-    st.info(random.choice(mesaje_shoaff))
+    mesaje = ["Success is something you attract.", "Profits are better than wages.", "Become more!"]
+    st.info(random.choice(mesaje))
+
 
 
