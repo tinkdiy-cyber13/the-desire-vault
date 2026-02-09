@@ -21,46 +21,47 @@ def salveaza_date(date):
 
 date_sistem = incarca_date()
 
-# Initializam starea dorintei daca nu exista
-if 'dorinta_trimisa' not in st.session_state:
-    st.session_state['dorinta_trimisa'] = False
+# Folosim un state special pentru a goli casuta
+if 'last_wish_time' not in st.session_state:
+    st.session_state['last_wish_time'] = 0
 
 # --- TITLU SI FILOZOFIE ---
 st.title("✨ The Desire Vault")
 st.write("---")
 st.markdown("> *\"Become naive enough to believe it will happen!\"*  \n> — **J. Earl Shoaff**")
 
-# 1. INPUT PENTRU DORINTA
+# 1. INPUT PENTRU DORINTA (Se goleste automat prin key-ul dinamic)
 st.subheader("🗝️ Seal your desire")
 
-# Folosim un "key" pentru a putea reseta casuta
-if not st.session_state['dorinta_trimisa']:
-    dorinta = st.text_input("Write your desire here (be specific):", placeholder="Example: I am so grateful for...", key="input_dorinta")
-    
-    if st.button("🚀 Send to the Vault"):
-        if dorinta:
-            progres = st.progress(0)
-            status_text = st.empty()
-            
-            for i, litera in enumerate(dorinta):
-                procent = int((i + 1) / len(dorinta) * 100)
-                status_text.markdown(f"**Processing letter:** `{litera}`")
-                progres.progress(procent)
-                time.sleep(0.05)
-                
-            st.balloons()
-            st.session_state['dorinta_trimisa'] = True
-            st.rerun() # Fortam reincarcarea pentru a goli casuta
-        else:
-            st.error("Please write your desire first!")
-else:
-    st.success("✨ Your desire has been sealed in the Universe's Vault!")
-    if st.button("➕ Write another desire"):
-        st.session_state['dorinta_trimisa'] = False
-        st.rerun()
+# Trucul de Admin: schimbam cheia de input de fiecare data cand trimitem, asa se goleste singura
+wish_key = f"wish_{st.session_state['last_wish_time']}"
+dorinta = st.text_input("Write your desire here (be specific):", placeholder="Example: I am so grateful for...", key=wish_key)
 
-# 2. BUTONUL DE RECUNOSTINTA
-if st.session_state['dorinta_trimisa']:
+if st.button("🚀 Send to the Vault"):
+    if dorinta:
+        progres = st.progress(0)
+        status_text = st.empty()
+        
+        # Efectul vizual de procesare
+        for i, litera in enumerate(dorinta):
+            procent = int((i + 1) / len(dorinta) * 100)
+            status_text.markdown(f"**Processing letter:** `{litera}`")
+            progres.progress(procent)
+            time.sleep(0.04)
+            
+        st.balloons()
+        st.success("✨ Your desire has been sealed in the Universe's Vault!")
+        
+        # Incrementam starea pentru a reseta casuta la urmatorul rerun
+        st.session_state['last_wish_time'] += 1
+        st.session_state['show_gratitude'] = True
+        time.sleep(2) # Lasam utilizatorul sa vada succesul
+        st.rerun() # RESTART automat pentru casuta goala
+    else:
+        st.error("Please write your desire first!")
+
+# 2. BUTONUL DE RECUNOSTINTA (Ramane activ pana la urmatoarea scriere)
+if st.session_state.get('show_gratitude'):
     st.divider()
     st.subheader("🙏 Gratitude activates the Magic")
     
@@ -75,7 +76,11 @@ if st.session_state['dorinta_trimisa']:
             st.snow()
             st.toast(f"Gratitude confirmed! ({st.session_state['count_multumiri']}/3)")
     else:
-        st.info("You have offered the 3 magic thanks! ✨")
+        st.info("The 3 magic thanks are sent! ✨")
+        if st.button("Reset Gratitude for new wish"):
+            st.session_state['count_multumiri'] = 0
+            st.session_state['show_gratitude'] = False
+            st.rerun()
 
 # 3. CONTORUL DE INIMIOARE
 st.markdown(
@@ -99,3 +104,4 @@ if st.button("🎁 THE MENTOR'S MESSAGE"):
         "Work harder on yourself than you do on your job."
     ]
     st.info(random.choice(mesaje_shoaff))
+
